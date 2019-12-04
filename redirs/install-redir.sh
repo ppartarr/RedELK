@@ -90,13 +90,6 @@ if [ $ERROR -ne 0 ]; then
     echoerror "Could not install filebeat (Error Code: $ERROR)."
 fi
 
-echo "Setting filebeat to auto start after reboot"
-systemctl enable filebeat >> $LOGFILE 2>&1
-ERROR=$?
-if [ $ERROR -ne 0 ]; then
-    echoerror "Could not change auto boot settings (Error Code: $ERROR)."
-fi
-
 echo "Making backup of original filebeat config"
 mv /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.ori >> $LOGFILE 2>&1
 ERROR=$?
