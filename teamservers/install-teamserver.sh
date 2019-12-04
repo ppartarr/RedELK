@@ -30,7 +30,7 @@ preinstallcheck() {
             exit 1
         else
             echo "[!] Filebeat: required version is installed ($INSTALLEDVERSION). Should be good. Stopping service now before continuing installation."
-            service filebeat stop
+            /etc/init.d/filebeat stop
             ERROR=$?
             if [ $ERROR -ne 0 ]; then
                 echoerror "Could not stop filebeat (Error Code: $ERROR)."
@@ -53,22 +53,8 @@ fi
 
 preinstallcheck
 
-echo "Setting timezone"
-timedatectl set-timezone $TIMEZONE >> $LOGFILE 2>&1
-ERROR=$?
-if [ $ERROR -ne 0 ]; then
-    echoerror "Could not set timezone (Error Code: $ERROR)."
-fi
-
-echo "Restarting rsyslog deamon for new timezone to take effect"
-service rsyslog restart >> $LOGFILE 2>&1
-ERROR=$?
-if [ $ERROR -ne 0 ]; then
-    echoerror "Could not restart rsyslog deamon (Error Code: $ERROR)."
-fi
-
 echo "Adding GPG key of Elastic"
-wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add - >> $LOGFILE 2>&1
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add - >> $LOGFILE 2>&1
 ERROR=$?
 if [ $ERROR -ne 0 ]; then
     echoerror "Could not add GPG key (Error Code: $ERROR)."
@@ -83,7 +69,7 @@ fi
 
 echo "Adding Elastic APT repository"
 if [ ! -f  /etc/apt/sources.list.d/elastic-6.x.list ]; then
-    echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" | tee -a /etc/apt/sources.list.d/elastic-6.x.list >> $LOGFILE 2>&1
+    echo "deb [trusted=yes] https://artifacts.elastic.co/packages/6.x/apt stable main" | tee -a /etc/apt/sources.list.d/elastic-6.x.list >> $LOGFILE 2>&1
 fi
 ERROR=$?
 if [ $ERROR -ne 0 ]; then
@@ -102,13 +88,6 @@ apt-get install -y filebeat=$ELKVERSION >> $LOGFILE 2>&1
 ERROR=$?
 if [ $ERROR -ne 0 ]; then
     echoerror "Could not install filebeat (Error Code: $ERROR)."
-fi
-
-echo "Setting filebeat to auto start after reboot"
-systemctl enable filebeat >> $LOGFILE 2>&1
-ERROR=$?
-if [ $ERROR -ne 0 ]; then
-    echoerror "Could not change auto boot settings (Error Code: $ERROR)."
 fi
 
 echo "Making backup of original filebeat config"
@@ -154,7 +133,7 @@ if [ $ERROR -ne 0 ]; then
 fi
 
 echo "Starting filebeat"
-service filebeat start >> $LOGFILE 2>&1
+/etc/init.d/filebeat >> $LOGFILE 2>&1
 ERROR=$?
 if [ $ERROR -ne 0 ]; then
     echoerror "Could not start filebeat (Error Code: $ERROR)."
