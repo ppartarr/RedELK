@@ -97,7 +97,7 @@ fi
 
 echo "Adding Elastic APT repository"
 if [ ! -f  /etc/apt/sources.list.d/elastic-6.x.list ]; then
-    echo "deb https://artifacts.elastic.co/packages/6.x/apt stable main" | tee -a /etc/apt/sources.list.d/elastic-6.x.list >> $LOGFILE 2>&1
+    echo "deb [trusted=yes] https://artifacts.elastic.co/packages/6.x/apt stable main" | tee -a /etc/apt/sources.list.d/elastic-6.x.list >> $LOGFILE 2>&1
 fi
 ERROR=$?
 if [ $ERROR -ne 0 ]; then
@@ -153,13 +153,6 @@ if [ $ERROR -ne 0 ]; then
     echoerror "Could not copy logstash Ruby scripts (Error Code: $ERROR)."
 fi
 
-echo "Setting logstash to auto start after reboot"
-systemctl enable logstash >> $LOGFILE 2>&1
-ERROR=$?
-if [ $ERROR -ne 0 ]; then
-    echoerror "Coul not change auto boot settings (Error Code: $ERROR)."
-fi
-
 echo "Downloading GeoIP database files"
 mkdir -p /usr/share/logstash/GeoLite2-dbs >> $LOGFILE 2>&1 && cd /tmp && curl http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz -O >> $LOGFILE 2>&1 && curl http://geolite.maxmind.com/download/geoip/database/GeoLite2-ASN.tar.gz -O >> $LOGFILE 2>&1 && tar zxvf /tmp/GeoLite2-ASN.tar.gz >> $LOGFILE 2>&1 && tar zxvf /tmp/GeoLite2-City.tar.gz >> $LOGFILE 2>&1 && mv /tmp/Geo*/*.mmdb /usr/share/logstash/GeoLite2-dbs >> $LOGFILE 2>&1 && chown -R logstash:logstash /usr/share/logstash/GeoLite2-dbs >> $LOGFILE 2>&1
 ERROR=$?
@@ -175,13 +168,6 @@ if [ $ERROR -ne 0 ]; then
     echoerror "Could not install elasticsearch (Error Code: $ERROR)."
 fi
 
-echo "Setting elasticsearch to auto start after reboot"
-systemctl enable elasticsearch >> $LOGFILE 2>&1
-ERROR=$?
-if [ $ERROR -ne 0 ]; then
-    echoerror "Coul not change auto boot settings (Error Code: $ERROR)."
-fi
-
 echo "Installing Kibana"
 apt-get install -y kibana=$ELKVERSION > $LOGFILE 2>&1
 ERROR=$?
@@ -189,25 +175,11 @@ if [ $ERROR -ne 0 ]; then
     echoerror "Could not install Kibana (Error Code: $ERROR)."
 fi
 
-echo "Setting Kibana to auto start after reboot"
-systemctl enable kibana >> $LOGFILE 2>&1
-ERROR=$?
-if [ $ERROR -ne 0 ]; then
-    echoerror "Coul not change auto boot settings (Error Code: $ERROR)."
-fi
-
 echo "Installing nginx"
 apt-get install -y nginx > $LOGFILE 2>&1
 ERROR=$?
 if [ $ERROR -ne 0 ]; then
     echoerror "Could not install nginx (Error Code: $ERROR)."
-fi
-
-echo "Setting nginx to auto start after reboot"
-systemctl enable nginx >> $LOGFILE 2>&1
-ERROR=$?
-if [ $ERROR -ne 0 ]; then
-    echoerror "Coul not change auto boot settings (Error Code: $ERROR)."
 fi
 
 echo "Copying nginx config files"
@@ -225,7 +197,7 @@ if [ $ERROR -ne 0 ]; then
 fi
 
 echo "Starting elasticsearch"
-systemctl start elasticsearch >> $LOGFILE 2>&1
+/etc/init.d/elasticsearch >> $LOGFILE 2>&1
 ERROR=$?
 if [ $ERROR -ne 0 ]; then
     echoerror "Could not start Elasticsearch (Error Code: $ERROR)."
@@ -233,7 +205,7 @@ fi
 sleep 10
 
 echo "Starting Kibana"
-systemctl start kibana >> $LOGFILE 2>&1
+/etc/init.d/kibana >> $LOGFILE 2>&1
 ERROR=$?
 if [ $ERROR -ne 0 ]; then
     echoerror "Could not start Kibana (Error Code: $ERROR)."
@@ -365,7 +337,7 @@ if [ $ERROR -ne 0 ]; then
 fi
 
 echo "Starting logstash"
-systemctl start logstash >> $LOGFILE 2>&1
+/etc/init.d/logstash >> $LOGFILE 2>&1
 ERROR=$?
 if [ $ERROR -ne 0 ]; then
     echoerror "Could not start logstash (Error Code: $ERROR)."
