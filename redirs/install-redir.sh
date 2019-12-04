@@ -53,22 +53,8 @@ fi
 
 preinstallcheck
 
-echo "Setting timezone"
-timedatectl set-timezone $TIMEZONE >> $LOGFILE 2>&1
-ERROR=$?
-if [ $ERROR -ne 0 ]; then
-    echoerror "Could not set timezone (Error Code: $ERROR)."
-fi
-
-echo "Restarting rsyslog deamon for new timezone to take effect"
-service rsyslog restart >> $LOGFILE 2>&1
-ERROR=$?
-if [ $ERROR -ne 0 ]; then
-    echoerror "Could not restart rsyslog deamon (Error Code: $ERROR)."
-fi
-
 echo "Adding GPG key of Elastic"
-wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add - >> $LOGFILE 2>&1
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add - >> $LOGFILE 2>&1
 ERROR=$?
 if [ $ERROR -ne 0 ]; then
     echoerror "Could not add GPG key (Error Code: $ERROR)."
